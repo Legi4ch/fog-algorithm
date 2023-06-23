@@ -17,7 +17,7 @@ class Fog():
                 key = key + pin        
             return key[0:seed_len-1]     
 
-    def __make_key(self, key:str) -> list:
+    def make_key(self, key:str) -> list:
         """ 
             Формируем итоговый ключ длиной seed_len - 1 из символов 
             предварительного ключа. Последний символ - остаток от деления всей суммы ключа на длину ключа      
@@ -26,15 +26,18 @@ class Fog():
         key_sum = 0
         for i in range(0, len(key)):
             k = int(key[i])
-            if (i % 2 == 0):
-                result_key.append(k+i)
-                key_sum = key_sum + (k+i)
+            el = 0
+            el = k+i if i % 2 == 0 else k**2
+            if el in result_key:
+                result_key.append(el*2)
+                key_sum = key_sum + (el*2)
             else:
-                result_key.append(k*i)
-                key_sum = key_sum + (k*i)
+                result_key.append(el)
+                key_sum = key_sum + (el)
+            
         cs = key_sum % len(key)
         result_key.append(cs)
-        return result_key
+        return result_key  
     
     def make_key(self, key:str) -> list:
         """ 
