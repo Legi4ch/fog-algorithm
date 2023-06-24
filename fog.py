@@ -41,27 +41,7 @@ class Fog():
         cs = key_sum % len(key)
         result_key.append(cs)
         return result_key  
-    
-    def make_key(self, key:str) -> list:
-        """ 
-            Формируем итоговый ключ длиной seed_len - 1 из символов 
-            предварительного ключа. Последний символ - остаток от деления всей суммы ключа на длину ключа      
-        """
-        result_key = []
-        key_sum = 0
-        for i in range(0, len(key)):
-            k = int(key[i])
-            if (i % 2 == 0):
-                result_key.append(k+i)
-                key_sum = key_sum + (k+i)
-            else:
-                result_key.append(k**2)
-                key_sum = key_sum + (k**2)
-        cs = key_sum % len(key)
-        result_key.append(cs)
-        return result_key    
-                
-            
+                                   
     
     def random_fog(self, words_count:int) -> list:
         _fog = bip.random_as_string(words_count, separator=" ", lang="en")
