@@ -21,9 +21,9 @@
 Рекомендую использовать библиотеку bip39gen (_Python_).
 <https://github.com/massmux/bip39gen>
 
-#### Создаем туман из 100 слов
+#### Создаем первичный туман из случайных слов
 `
-benefit drop gospel infant damage spike ramp spice scene proud sad average fly trim wrong race goose regret reduce clerk happy gaze neck fragile wave execute dry file later auction such connect genius panther awesome screen glide during repair carry people stereo caught elder build near candy barrel boy ready version salad regret rival laugh tornado autumn tilt fit river purity drum churn can shrug segment sponsor away tag honey follow wagon problem fragile quantum input leaf wrong chimney panel horse force enlist dawn fox helmet equip improve december polar exhaust guide soft fiction fiction coast expose search manual toilet
+['mystery', 'base', 'lens', 'smile', 'amazing', 'limit', 'offer', 'column', 'habit', 'art', 'height', 'august', 'emerge', 'merge', 'globe', 'rely', 'boy', 'fan', 'rubber', 'mask', 'salon', 'village', 'lobster', 'physical', 'carbon', 'day', 'tool', 'abuse', 'cruise', 'margin', 'sausage', 'victory', 'open', 'monster', 'anxiety', 'thunder', 'seven', 'reduce', 'express', 'bench', 'inflict', 'sunny', 'slot', 'brand', 'casino', 'blast', 'spatial', 'chunk', 'shallow', 'clarify', 'dish', 'trumpet', 'focus', 'original', 'width', 'divide', 'judge', 'hope', 'wrist', 'response', 'disagree', 'citizen', 'inject', 'gain', 'have', 'rug', 'garage', 'tourist', 'next', 'combine', 'tail', 'furnace', 'argue', 'coil', 'slender', 'canal', 'siege', 'arrive', 'curious', 'doll', 'fog', 'verb', 'skin', 'detect', 'song', 'penalty', 'fade', 'very', 'combine', 'dry', 'gain', 'inherit', 'brother', 'leave', 'law', 'spray', 'mean', 'face', 'barely', 'grid', 'wear', 'ocean', 'pyramid', 'farm', 'mixed', 'crime', 'glance', 'spirit', 'little', 'crane']
 `
 
 ##### Первичный ключ
@@ -38,35 +38,35 @@ benefit drop gospel infant damage spike ramp spice scene proud sad average fly t
 |---|---|---|---|---|---|---|---|---|---|---|---|
 |  1 | 2  | 3  | 4  | 5  | 6  | 1  | 2  | 3  | 4  | 5  |  |
 
-Теперь, каждый цифру первичного ключа имеющую четный индекс складываем с индексом.
+Теперь, каждый цифру первичного ключа имеющую четный индекс складываем с индексом умноженным на 10.
 Каждую цифру первичного ключа имеющую нечетный индекс возводим в квадрат.
-Если полученный результат уже присутствует в предыдущих значениях, умножаем его на 2 и добавляем. 
-Если это уникальное значение, то добавляем как есть.
+Если полученный результат уже присутствует в предыдущих значениях, умножаем его на 2. 
+Если это уникальное значение, то оставляем как есть.
 
 Получаем такой вид ключа тумана.
 | 0  | 1  |  2 | 3  | 4  |  5 | 6  | 7  | 8  | 9  | 10  | К |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 |  1 | 2  | 3  | 4  | 5  | 6  | 1  | 2  | 3  | 4  | 5  |  |
-|  1 | 4  |5  | 16  | 9  | 36  | 7  | 8  | 11  | 32  |15  |  |
+|  1 | 4  | 23 | 16  | 45  | 36  | 61  | 8  | 83  | 32  |105  |  |
 
 Контрольный символ вычисляется как остаток от деления суммы всех цифр ключа на кол-во цифр в ключе.
-В нашем случае 1+4+5+16+9+36+7+8+11+32+15 = 144. Остаток деления 144 % 11 = 1
+В нашем случае 1+4+23+16+45+36+61+8+83+32+105 = 414. Остаток деления 414 % 11 = 7
 
 Мы получили ключ тумана.
 | 0  | 1  |  2 | 3  | 4  |  5 | 6  | 7  | 8  | 9  | 10  | К |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 |  1 | 2  | 3  | 4  | 5  | 6  | 1  | 2  | 3  | 4  | 5  |  |
-|  1 | 4  |5  | 16  | 9  | 36  | 7  | 8  | 11  | 32  |15  | 1 |
+|  1 | 4  | 23 | 16  | 45  | 36  | 61  | 8  | 83  | 32  |105  | 7 |
 
 
 #### Создание публичного тумана
 _Для генерации тумана лучше использовать программу, ибо делать это руками будет достаточно неудобно)_
 После генерации первичного тумана из случайных слов (выше), записываем нашу сид фразу в туман таким образом:
 1. Преобразуем первичный туман в список (_для Pyhon_)
-2. Берем последний символ ключа тумана (_обратный цикл_). Его индекс 11, а значение 1.
-3. Берем из сид фразы слово стоящее под номер 11 и добавляем (_insert_) его в список с индексом 1.
+2. Берем последний символ ключа тумана (_обратный цикл_). Его индекс 11, а значение 7.
+3. Берем из сид фразы слово стоящее под номер 11 и добавляем его в туман с индексом 7.
 4. Туман увеличивается на одно слово, а старые индексы смещаются.
-5. Повторяем с предыдущим символом из ключа (10,15) и увеличенным списком.
+5. Повторяем шаги 3-4 до перебора всей длины ключа.
 6. Таким образом, полученный список увеличится на 12 слов.
 7. Преобразуем список в строку и полученный набор слов можно распечать, сохранить на компьютере и т.д.
 
@@ -74,7 +74,7 @@ _Для генерации тумана лучше использовать пр
 
 #### Итоговый туман, после полного прохода
 `
-benefit 1 12 drop gospel 2 infant 3 damage spike 7 ramp 5 8 spice scene proud 9 sad 4 average fly trim 11 wrong race goose regret reduce clerk happy gaze neck fragile wave execute dry file later auction 10 6 such connect genius panther awesome screen glide during repair carry people stereo caught elder build near candy barrel boy ready version salad regret rival laugh tornado autumn tilt fit river purity drum churn can shrug segment sponsor away tag honey follow wagon problem fragile quantum input leaf wrong chimney panel horse force enlist dawn fox helmet equip improve december polar exhaust guide soft fiction fiction coast expose search manual toilet
+['mystery', '1', 'base', 'lens', 'smile', '2', 'amazing', 'limit', 'offer', '12', '8', 'column', 'habit', 'art', 'height', 'august', 'emerge', 'merge', '4', 'globe', 'rely', 'boy', 'fan', 'rubber', 'mask', '3', 'salon', 'village', 'lobster', 'physical', 'carbon', 'day', 'tool', 'abuse', 'cruise', 'margin', 'sausage', '10', 'victory', 'open', '6', 'monster', 'anxiety', 'thunder', 'seven', 'reduce', 'express', 'bench', 'inflict', '5', 'sunny', 'slot', 'brand', 'casino', 'blast', 'spatial', 'chunk', 'shallow', 'clarify', 'dish', 'trumpet', 'focus', 'original', 'width', 'divide', 'judge', 'hope', '7', 'wrist', 'response', 'disagree', 'citizen', 'inject', 'gain', 'have', 'rug', 'garage', 'tourist', 'next', 'combine', 'tail', 'furnace', 'argue', 'coil', 'slender', 'canal', 'siege', 'arrive', 'curious', 'doll', 'fog', '9', 'verb', 'skin', 'detect', 'song', 'penalty', 'fade', 'very', 'combine', 'dry', 'gain', 'inherit', 'brother', 'leave', 'law', 'spray', 'mean', 'face', 'barely', 'grid', 'wear', 'ocean', 'pyramid', 'farm', '11', 'mixed', 'crime', 'glance', 'spirit', 'little', 'crane']
 `
 
 #### Восстановление сид фразы из тумана достаточно просто выполнить без компьютера
