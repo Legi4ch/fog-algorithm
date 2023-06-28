@@ -11,7 +11,7 @@
 
 #### Описание работы алгоритма.
 
-Пин-код используемый в этом примере - 123456.
+Пин-код используемый в этом примере - 12345.
 
 Сид фраза из 12 слов, которую мы собираемся положить в публичном месте после замешивания в туман.
 Для наглядности будем использовать цифры вместо слов.
@@ -23,48 +23,42 @@
 
 #### Создаем первичный туман из случайных слов
 `
-['mystery', 'base', 'lens', 'smile', 'amazing', 'limit', 'offer', 'column', 'habit', 'art', 'height', 'august', 'emerge', 'merge', 'globe', 'rely', 'boy', 'fan', 'rubber', 'mask', 'salon', 'village', 'lobster', 'physical', 'carbon', 'day', 'tool', 'abuse', 'cruise', 'margin', 'sausage', 'victory', 'open', 'monster', 'anxiety', 'thunder', 'seven', 'reduce', 'express', 'bench', 'inflict', 'sunny', 'slot', 'brand', 'casino', 'blast', 'spatial', 'chunk', 'shallow', 'clarify', 'dish', 'trumpet', 'focus', 'original', 'width', 'divide', 'judge', 'hope', 'wrist', 'response', 'disagree', 'citizen', 'inject', 'gain', 'have', 'rug', 'garage', 'tourist', 'next', 'combine', 'tail', 'furnace', 'argue', 'coil', 'slender', 'canal', 'siege', 'arrive', 'curious', 'doll', 'fog', 'verb', 'skin', 'detect', 'song', 'penalty', 'fade', 'very', 'combine', 'dry', 'gain', 'inherit', 'brother', 'leave', 'law', 'spray', 'mean', 'face', 'barely', 'grid', 'wear', 'ocean', 'pyramid', 'farm', 'mixed', 'crime', 'glance', 'spirit', 'little', 'crane']
+unique permit behind cradle flash end accuse soap verb fitness maximum pupil elder wait thing cradle pilot alpha giraffe wage siege below artefact chicken name improve random clarify teach chunk zone tip middle close truck token kiwi two riot orient group skirt loud mass version guard rail plate palace vessel eager zebra blood scissors high napkin teach match crime glimpse monitor food mention fit clog summer march chalk staff kick transfer nut brisk ahead effort cart owner exact mushroom afford icon review lobster course fat garage busy spin shop grow luggage need couple side bachelor energy symptom naive ribbon sing way turkey ripple state teach admit tribe trouble entire people fabric either cool canoe
 `
 
 ##### Первичный ключ
-Образуется склеиванием пин-кода с самим собой до получения длины равной кол-ву слов в сид фразе минус 1. Ниже будет ясно почему меньше на единицу.
-В этом пример длина пин-кода 6 символов. Поэтому мы _добиваем_ еще 5 символов из начала пин-кода к его концу.
-Таким образом первичный ключ тумана 12345612345, всего 11 символов.
+Образуется склеиванием пин-кода с самим собой до получения длины равной кол-ву слов в сид фразе.
+В этом пример длина пин-кода 5 символов. Поэтому мы _добиваем_ еще 7 символов из начала пин-кода к его концу.
+Таким образом первичный ключ тумана 123451234512, всего 12 символов.
 
 ##### Генерируем ключ тумана
 
-Первичный ключ выглядит так. __К__ это контрольный символ, его расчитаем позже.
-| 0  | 1  |  2 | 3  | 4  |  5 | 6  | 7  | 8  | 9  | 10  | К |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-|  1 | 2  | 3  | 4  | 5  | 6  | 1  | 2  | 3  | 4  | 5  |  |
+Первичный ключ выглядит так. __S__ это сдвиг, его расчитаем позже, когда получим все значения.
+| 0  | 1  |  2 | 3  | 4  |  5 | 6  | 7  | 8  | 9  | 10 | 11 | S |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  1 | 2  | 3  | 4  | 5  | 1  | 2  |3  | 4  | 5  | 1  | 2 | 
 
-Теперь, каждый цифру первичного ключа имеющую четный индекс складываем с индексом умноженным на 10.
-Каждую цифру первичного ключа имеющую нечетный индекс возводим в квадрат.
-Если полученный результат уже присутствует в предыдущих значениях, умножаем его на 2. 
-Если это уникальное значение, то оставляем как есть.
+Теперь, каждую цифру первичного ключа имеющую нечетный индекс складываем с индексом умноженным на 10.
+Каждую цифру первичного ключа имеющую четный индекс возводим в квадрат.
 
 Получаем такой вид ключа тумана.
-| 0  | 1  |  2 | 3  | 4  |  5 | 6  | 7  | 8  | 9  | 10  | К |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-|  1 | 2  | 3  | 4  | 5  | 6  | 1  | 2  | 3  | 4  | 5  |  |
-|  1 | 4  | 23 | 16  | 45  | 36  | 61  | 8  | 83  | 32  |105  |  |
+| 0  | 1  |  2 | 3  | 4  |  5 | 6  | 7  | 8  | 9  | 10 | 11 | S |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+|  1 | 2  | 3  | 4  | 5  | 1  | 2  |3  | 4  | 5  | 1  | 2 | 
+|  1 | 12  | 9  | 34  | 25  | 51  | 4  | 73  | 16  | 95  | 1  | 112 | 
 
-Контрольный символ вычисляется как остаток от деления суммы всех цифр ключа на кол-во цифр в ключе.
-В нашем случае 1+4+23+16+45+36+61+8+83+32+105 = 414. Остаток деления 414 % 11 = 7
+Теперь надо вычислить сдвиг ключа. Он получается вычислением остатка от деления суммы всех цифр ключа на длину ключа.
 
-Мы получили ключ тумана.
-| 0  | 1  |  2 | 3  | 4  |  5 | 6  | 7  | 8  | 9  | 10  | К |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-|  1 | 2  | 3  | 4  | 5  | 6  | 1  | 2  | 3  | 4  | 5  |  |
-|  1 | 4  | 23 | 16  | 45  | 36  | 61  | 8  | 83  | 32  |105  | 7 |
+В нашем случае 1 + 12 +9 + 34 + 25 + 51 + 4 + 73 + 16 + 95 + 1 + 112 = 433. Остаток деления 433 % 12 = 1.
 
+Мы получили ключ тумана и сдвиг.
 
 #### Создание публичного тумана
 _Для генерации тумана лучше использовать программу, ибо делать это руками будет достаточно неудобно)_
 После генерации первичного тумана из случайных слов (выше), записываем нашу сид фразу в туман таким образом:
 1. Преобразуем первичный туман в список (_для Pyhon_)
-2. Берем последний символ ключа тумана (_обратный цикл_). Его индекс 11, а значение 7.
-3. Берем из сид фразы слово стоящее под номер 11 и добавляем его в туман с индексом 7.
+2. Берем последний символ ключа тумана (_обратный цикл_). Его индекс 12, а значение 112.
+3. Берем из сид фразы слово стоящее под номером 12 и добавляем его в туман с индексом 122 + 1 (сдвиг).
 4. Туман увеличивается на одно слово, а старые индексы смещаются.
 5. Повторяем шаги 3-4 до перебора всей длины ключа.
 6. Таким образом, полученный список увеличится на 12 слов.
@@ -74,7 +68,7 @@ _Для генерации тумана лучше использовать пр
 
 #### Итоговый туман, после полного прохода
 `
-['mystery', '1', 'base', 'lens', 'smile', '2', 'amazing', 'limit', 'offer', '12', '8', 'column', 'habit', 'art', 'height', 'august', 'emerge', 'merge', '4', 'globe', 'rely', 'boy', 'fan', 'rubber', 'mask', '3', 'salon', 'village', 'lobster', 'physical', 'carbon', 'day', 'tool', 'abuse', 'cruise', 'margin', 'sausage', '10', 'victory', 'open', '6', 'monster', 'anxiety', 'thunder', 'seven', 'reduce', 'express', 'bench', 'inflict', '5', 'sunny', 'slot', 'brand', 'casino', 'blast', 'spatial', 'chunk', 'shallow', 'clarify', 'dish', 'trumpet', 'focus', 'original', 'width', 'divide', 'judge', 'hope', '7', 'wrist', 'response', 'disagree', 'citizen', 'inject', 'gain', 'have', 'rug', 'garage', 'tourist', 'next', 'combine', 'tail', 'furnace', 'argue', 'coil', 'slender', 'canal', 'siege', 'arrive', 'curious', 'doll', 'fog', '9', 'verb', 'skin', 'detect', 'song', 'penalty', 'fade', 'very', 'combine', 'dry', 'gain', 'inherit', 'brother', 'leave', 'law', 'spray', 'mean', 'face', 'barely', 'grid', 'wear', 'ocean', 'pyramid', 'farm', '11', 'mixed', 'crime', 'glance', 'spirit', 'little', 'crane']
+unique permit 1 11 behind cradle 7 flash end accuse soap 3 verb fitness 2 maximum pupil elder wait thing cradle 9 pilot alpha giraffe wage siege below artefact 5 chicken name improve random clarify teach chunk zone 4 tip middle close truck token kiwi two riot orient group skirt loud mass version guard rail plate palace 6 vessel eager zebra blood scissors high napkin teach match crime glimpse monitor food mention fit clog summer march chalk staff kick transfer nut 8 brisk ahead effort cart owner exact mushroom afford icon review lobster course fat garage busy spin shop grow luggage need couple side bachelor 10 energy symptom naive ribbon sing way turkey ripple state teach admit tribe trouble entire people fabric either cool 12 canoe
 `
 
 #### Восстановление сид фразы из тумана достаточно просто выполнить без компьютера
@@ -83,7 +77,22 @@ _Для генерации тумана лучше использовать пр
 2. Преобразуем строку тумана в список (_для Python_)
 3. Создаем снова ключ тумана по пин-коду
 4. Берем нулевой индекс ключа. Это 1.
-5. Добавляем слово из туманного списка с индексом 1 в список слов. Это первое слово из сид фразы.
+5. Добавляем слово из туманного списка с индексом 1 + 1 (сдвиг) в список слов. Это первое слово из сид фразы.
 6. Из туманного списка удаляется элемент с индексом 1. Туман слов укорачивается, индексы смещаются.
 7. Шаги 3-5 повторяются до перебора всей длины ключа.
+
+Как видно, все операции по расчету ключа из пин-кода несложно сделать вручную или например в excel.
+Также можно восстановить фразу с бумажного листка, просто вычеркивая найденные по ключу и сдвигу слова и считая индекс от нуля каждый раз для следующего слова.
+
+#### Несколько мыслей о стойкости алгоритма
+
+Перебор даже получившегося тумана из 120 - 150 слов слишком накладен. 
+
+$Ckn=n!(n−k)!⋅k!$
+
+Вот число вариантов для фразы состоящей из 12 слов, которые можно составить из списка в 120 слов.
+
+$C12120=120!12!⋅(120−12)! =  10 542 859 559 688 820$
+
+
 
