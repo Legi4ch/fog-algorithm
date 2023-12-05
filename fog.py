@@ -4,15 +4,21 @@ import random
 
 
 class Fog:
-    _key: list
-    _shift: int
+    _primary_key: list
+    _xor_key: list
+    _shifts: list
+    _xor_control_sum: int
     seed_len: int
     pin: str
+    _rand_min = 10
+    _rand_max = 50
 
-    def __init__(self, pin: str, seed_len: int):
-        self.seed_len = seed_len
-        self.pin = pin
-        self._set_key(pin, seed_len)
+    def __init__(self, _pin: str, _seed_len: int):
+        self.seed_len = _seed_len
+        self.pin = _pin
+        self._set_primary_key()
+        self._set_xor_key()
+        self._set_shifts()
 
     def _glue_pin(self) -> str:
         """ формируем предварительный ключ длиной seed_len из символов pin """
@@ -24,35 +30,66 @@ class Fog:
                 key = key + self.pin
             return key[0:self.seed_len]
 
-    def _set_key(self, _pin: str, _seed_len: int):
+    def _set_primary_key(self):
         """
-            Формируем итоговый ключ из символов предварительного ключа.
+            Формируем первичный ключ из пин-кода ключа.
         """
         result_key = []
         key_sum = 0
         key = self._glue_pin()
 
         for i in range(0, len(key)):
-            el = int(key[i]) + i * 10 if i % 2 > 0 else int(key[i]) ** 2
+            el = int(key[i]) + ((i+1) * 10) if i % 2 > 0 else int(key[i]) ** 2
             result_key.append(el)
             key_sum = key_sum + el
 
-        cs = key_sum % len(key)
-        self._key = result_key
-        self._shift = cs
+        self._primary_key = result_key
 
-    def get_key(self) -> list:
-        return self._key
+    def _set_xor_key(self):
+        """
+            Формируем xor ключ из первичного ключа.
+        """
+        result_key = []
+        key_sum = 0
+        for i in range(0, len(self._primary_key)):
+            xor = self._primary_key[i] ^ (i+1)
+            result_key.append(xor)
+            key_sum = key_sum + xor
 
-    def get_shift(self) -> int:
-        return self._shift
+        self._xor_control_sum = key_sum % len(self._primary_key)
+        self._xor_key = result_key
+
+    def _set_shifts(self):
+        """
+            Формируем итоговый сдвиг каждого слова
+        """
+        result_key = []
+        for i in range(0, len(self._xor_key)):
+            if i % 2 > 0:
+                el = self._xor_key[i] + self._primary_key[i] - self._xor_control_sum
+            else:
+                el = self._xor_key[i] + self._primary_key[i] + self._xor_control_sum
+            result_key.append(el)
+        self._shifts = result_key
+
+    def get_primary_key(self) -> list:
+        return self._primary_key
+
+    def get_xor_key(self) -> list:
+        return self._xor_key
+
+    def get_shifts(self) -> list:
+        return self._shifts
+
+    def get_xor_control_sum(self) -> int:
+        return self._xor_control_sum
 
     def get_seed_len(self) -> int:
         return self.seed_len
 
     def _random_fog(self) -> list:
-        words_count = sorted(self._key)[-1] + random.randint(self._shift,
-                                                             self._shift * 2)  # создаем список > max значения в ключе
+        words_count = max(self._shifts) + random.randint(self._rand_min,
+                                                         self._rand_max)
         _fog = bip.random_as_string(words_count, separator=" ", lang="en")
         return _fog.split()
 
@@ -61,7 +98,7 @@ class Fog:
         _fog = self._random_fog()
         seed = _phrase.split()
         for word, k in enumerate(range(self.seed_len, 0, -1)):
-            _fog.insert(int(self._key[k - 1] + self._shift), seed[k - 1])
+            _fog.insert(self._shifts[k-1], seed[k - 1])
         return _fog
 
     def restore(self, _fog: str) -> str:
@@ -69,7 +106,7 @@ class Fog:
         _seed = []
         _fog = _fog.split()
         for i in (range(0, self.seed_len)):
-            k = int(self._key[i] + self._shift)
+            k = self._shifts[i]
             _seed.append(_fog[k])
             _fog.pop(k)
         return ' '.join(_seed)
@@ -84,14 +121,16 @@ if __name__ == "__main__":
     phrase = '''1 2 3 4 5 6 7 8 9 10 11 12'''
     seed_len = len(phrase.split())
     fog = Fog(pin, seed_len)
-    print("Key: ", fog.get_key())
 
     # замешивание тумана
     result = fog.get_fog(phrase)
     print("Fog: ", fog.list_to_str(result))
 
-    print("Shift: ", fog.get_shift())
+    print("Key: ", fog.get_primary_key())
+    print("XOR: ", fog.get_xor_key())
+    print("Shifts: ", fog.get_shifts())
+    print("XOR control sum: ", fog.get_xor_control_sum())
 
     # восстановление фразы из тумана
     words = fog.list_to_str(result)
-    print("Restored: ", fog.restore(words))
+    print("Restored phrase: ", fog.restore(words))
