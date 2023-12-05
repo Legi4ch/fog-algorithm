@@ -13,69 +13,110 @@
 
 Пин-код используемый в этом примере - 12345.
 
-Сид фраза из 12 слов, которую мы собираемся положить в публичном месте после замешивания в туман.
-Для наглядности будем использовать цифры вместо слов.
+Сид фраза, которую мы собираемся положить в публичном месте после замешивания в туман, состоит из 12 слов.
+Для наглядности в примере работы алгоритма будем использовать цифры вместо настоящих слов.
 1 2 3 4 5 6 7 8 9 10 11 12
 
 Генерировать первичный туман лучше всего случайно.
 Рекомендую использовать библиотеку bip39gen (_Python_).
 <https://github.com/massmux/bip39gen>
 
-#### Создаем первичный туман из случайных слов
-`
-unique permit behind cradle flash end accuse soap verb fitness maximum pupil elder wait thing cradle pilot alpha giraffe wage siege below artefact chicken name improve random clarify teach chunk zone tip middle close truck token kiwi two riot orient group skirt loud mass version guard rail plate palace vessel eager zebra blood scissors high napkin teach match crime glimpse monitor food mention fit clog summer march chalk staff kick transfer nut brisk ahead effort cart owner exact mushroom afford icon review lobster course fat garage busy spin shop grow luggage need couple side bachelor energy symptom naive ribbon sing way turkey ripple state teach admit tribe trouble entire people fabric either cool canoe
-`
+#### Создаем первичный туман из случайных слов с помощью bip39gen
 
-##### Первичный ключ
+```python
+import bip39gen as bip
+import random
+def random_fog() -> list:
+  words_count = 300
+  fog = bip.random_as_string(words_count, separator=" ", lang="en")
+  return fog.split()
+print(random_fog())
+```
+
+
+##### Исходный ключ
 Образуется склеиванием пин-кода с самим собой до получения длины равной кол-ву слов в сид фразе.
 В этом пример длина пин-кода 5 символов. Поэтому мы _добиваем_ еще 7 символов из начала пин-кода к его концу.
 Таким образом первичный ключ тумана 123451234512, всего 12 символов.
 
-##### Генерируем ключ тумана
+##### Первичный ключ
+Для получения первичного ключа надо проделать операцию с каждым элементом исходного ключа:
 
-Первичный ключ выглядит так. __S__ это сдвиг, его расчитаем позже, когда получим все значения.
-| 0  | 1  |  2 | 3  | 4  |  5 | 6  | 7  | 8  | 9  | 10 | 11 | S |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|  1 | 2  | 3  | 4  | 5  | 1  | 2  |3  | 4  | 5  | 1  | 2 | 
+каждую цифру исходного ключа имеющую нечетный индекс складываем с индексом умноженным на 10.
 
-Теперь, каждую цифру первичного ключа имеющую нечетный индекс складываем с индексом умноженным на 10.
-Каждую цифру первичного ключа имеющую четный индекс возводим в квадрат.
+каждую цифру исходного ключа имеющую четный индекс возводим в квадрат.
 
-Получаем такой вид ключа тумана.
-| 0  | 1  |  2 | 3  | 4  |  5 | 6  | 7  | 8  | 9  | 10 | 11 | S |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-|  1 | 2  | 3  | 4  | 5  | 1  | 2  |3  | 4  | 5  | 1  | 2 | 
-|  1 | 12  | 9  | 34  | 25  | 51  | 4  | 73  | 16  | 95  | 1  | 112 | 
+##### XOR ключ
+Для получения XOR ключа надо произвести xor операцию: индекс первичного ключа (считать от 1) xor значение первичного ключа от этого индекса.
 
-Теперь надо вычислить сдвиг ключа. Он получается вычислением остатка от деления суммы всех цифр ключа на длину ключа.
+В MS Excel эта операция назвается БИТ.ИСКЛИЛИ(A;B)
 
-В нашем случае 1 + 12 +9 + 34 + 25 + 51 + 4 + 73 + 16 + 95 + 1 + 112 = 433. Остаток деления 433 % 12 = 1.
+##### Контрольное число XOR ключа
+Это число понадобится на последнем шаге. Вычисляется как остаток от деления суммы всех элементов XOR ключа на кол-во его элементов.
 
-Мы получили ключ тумана и сдвиг.
+##### Ключ сдвига
+Это последний шаг подготовки, который выполняется так:
+
+для четного индекса XOR ключа берется его значение, складывается со значением из соответствующего индекса первичного ключа и с контрольным XOR числом
+
+для нечетного индекса XOR ключа берется его значение, складывается со значением из соответствующего индекса первичного ключа и вычитается контрольное XOR число
+
+
+Все преобразования показаны в таблице. Контрольное число XOR ключа в данном случае равно 11.
+
+|   Индекс	    |   1	|   2	|   3	|   4	|   5	|   6	|   7	|   8	|   9	|   10	|   11	|   12	|
+|---	        |---	|---	|---	|---	|---	|---	|---	|---	|---	|---	|---	|---	|
+|Пин-код        |   1 	|   2	|   3	|   4	|   5	|   1	|   2	|   3	|   4	|   5	|   1	|   2	|
+|Первичный ключ |   1	|  22	|   9	|   44	|   25	|   61	|   4	|   83	|   16	|   105	|   1	|   122	|
+|XOR         	|   0   |  20 	|  10 	|   40	|   28	|   59	|   3	|   91	|   25	|   99	|   10	|  118 	|
+|Сдвиг  	    |   12	|  31 	|  30 	|   74	|   64	|   109	|   18	|   163	|   52	|   193	|   22	|  229 	|
+
+Вы также можете провести эксперименты с разыми значениями пин-кода в с помощью файла keys_calculator.xlsx 
+
+
+Теперь у нас есть сдвиг для каждого слова из сид фразы.
 
 #### Создание публичного тумана
 _Для генерации тумана лучше использовать программу, ибо делать это руками будет достаточно неудобно)_
 После генерации первичного тумана из случайных слов (выше), записываем нашу сид фразу в туман таким образом:
 1. Преобразуем первичный туман в список (_для Pyhon_)
-2. Берем последний символ ключа тумана (_обратный цикл_). Его индекс 12, а значение 112.
-3. Берем из сид фразы слово стоящее под номером 12 и добавляем его в туман с индексом 113 (112 + 1 сдвиг).
-4. Туман увеличивается на одно слово, а старые индексы смещаются.
+2. Берем последний символ ключа тумана (_обратный цикл_). Его индекс 12, а значение сдвига 229.
+3. Берем из сид фразы слово стоящее под номером 12 и добавляем его в туман с индексом 229.
+4. Туман увеличивается на одно слово, а индексы тумана смещаются на единицу.
 5. Повторяем шаги 3-4 до перебора всей длины ключа.
 6. Таким образом, полученный список увеличится на 12 слов.
 7. Преобразуем список в строку и полученный набор слов можно распечать, сохранить на компьютере и т.д.
 
 
 
-#### Итоговый туман, после полного прохода
+#### Туман, после полного прохода по все фразе
 `
-unique permit 1 11 behind cradle 7 flash end accuse soap 3 verb fitness 2 maximum pupil elder wait thing cradle 9 pilot alpha giraffe wage siege below artefact 5 chicken name improve random clarify teach chunk zone 4 tip middle close truck token kiwi two riot orient group skirt loud mass version guard rail plate palace 6 vessel eager zebra blood scissors high napkin teach match crime glimpse monitor food mention fit clog summer march chalk staff kick transfer nut 8 brisk ahead effort cart owner exact mushroom afford icon review lobster course fat garage busy spin shop grow luggage need couple side bachelor 10 energy symptom naive ribbon sing way turkey ripple state teach admit tribe trouble entire people fabric either cool 12 canoe
+exchange repair glass visa vintage refuse all enlist flip size puppy number 1 earth 
+empower food foam account believe 7 panel success guitar smile 11 turn close begin 
+pen cake canyon 3 2 fresh quit bleak tattoo sorry weasel melody mistake clay wasp 
+unfair sugar push vague tornado guilt dragon brick choose vapor chest average slight 
+9 maximum film sound venture process room beef solve rain bitter 5 stomach universe 
+eyebrow deputy excuse walk muscle shed 4 burden gather shallow fuel protect ozone 
+sunset organ fun dad giggle latin life empty office uphold lottery pledge aspect 
+capital once retire nose remove poverty depth nominee puppy index absurd found pen 
+into enlist shrug leave slush 6 age sea liar dismiss tank sand dumb indicate then 
+abuse cereal broom buzz conduct tone grass blush cousin bubble parade march fantasy 
+girl nerve heart false tree tobacco tonight local antique rough pizza message lock 
+behind sand mail leaf canal stairs globe phone canyon valid disorder wish try behave 
+law tunnel gather cannon engage hub 8 problem flee walk hundred gain symbol kick 
+drama enroll cousin lobster nose young suspect account visual market great cliff 
+double brisk puzzle hand mass canoe roast spoil useful chair deer vibrant 10 
+spring keen crush width ozone brisk live alley sketch suggest oblige crowd live 
+sight idle must swap attract market essence repair deer wrap nothing govern mango 
+pull truth lazy ball face daring piano album stand goddess tent 12 field panda comic 
+solar club void never crowd shine margin illegal transfer pottery subway glad cage enjoy
 `
 
 #### Восстановление сид фразы из тумана достаточно просто выполнить без компьютера
 Теперь цикл уже прямой.
 1. Создаем пустой список для записи слов из тумана.
 2. Преобразуем строку тумана в список (_для Python_)
-3. Создаем снова ключ тумана по пин-коду
+3. Создаем все ключи по пин-коду
 4. Берем нулевой индекс ключа. Это 1.
 5. Добавляем слово из туманного списка с индексом 1 + 1 (сдвиг) в список слов. Это первое слово из сид фразы.
 6. Из туманного списка удаляется элемент с индексом 1. Туман слов укорачивается, индексы смещаются.
@@ -89,7 +130,7 @@ unique permit 1 11 behind cradle 7 flash end accuse soap 3 verb fitness 2 maximu
 __Это не криптографический алгоритм и не способ шифрования инофрмации!!! Это алгоритм стеганографии!!!__
 
 В работе алгоритма нет никаких криптографических методов. Это способ скрыть информацию в другой информации. Суть данного способа в том, что правильный порядок слов и их место в конечном тексте
-находятся в неизвестных местах, среди других слов. Сами слова ключевой фразы все равно присутсвуют в получаемом тексте.
+находятся в неизвестных местах, среди других слов. Сами слова ключевой фразы все равно присутствуют в получаемом тексте.
 
 Смысл алгоритма туман - получить способ восстанавливать забытую, либо утерянную ключевую фразу из относительно безопасного места хранения в тумане, без применения каких-либо программ вообще.
 
