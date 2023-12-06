@@ -58,13 +58,17 @@ class Fog:
 
     def _set_shifts(self):
         """
-            Формируем итоговый сдвиг каждого слова
+            Формируем итоговый сдвиг каждого слова. Каждое значение сдвига уникально!
         """
         result_key = []
+        full_set = set()
         for idx in range(0, len(self._xor_key)):
             i = self._xor_key[idx] if self._xor_key[idx] < 1000 else int(str(self._xor_key[idx])[:3]) + (idx+1)
             el = i - self._xor_control_sum if idx % 2 > 0 else i + self._xor_control_sum
             el = -el if el < 0 else el
+            while el in full_set:
+                el = el + 1
+            full_set.add(el)
             result_key.append(el)
         self._shifts = result_key
 
@@ -124,6 +128,7 @@ if __name__ == "__main__":
     # замешивание тумана
     result = fog.get_fog(phrase)
     print("Fog: ", fog.list_to_str(result))
+    print("Total words in fog: ", len(result))
 
     print("Pin: ", fog.get_pin())
     print("Key: ", fog.get_primary_key())
