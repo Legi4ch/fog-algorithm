@@ -4,14 +4,13 @@
 
 > Приведенный ниже способ не является алгоритмом шифрования. Это возможность хранить сид-фразу относительно безопасно и не запоминать ее. Используйте на свой страх и риск.
 
-Полученный по алгоритму набор слов можно распечатать на бумаге, закинуть на почту и т.д. 
-Вам не потребуется программа для восстановления фразы, если вы понимаете, как работает алгоритм и помните пин-код.
-Получить ключ по пин-коду можно даже в табличке excel или вообще на бумажке.
+Полученный по алгоритму набор слов можно сохранить на облачном диске, закинуть на почту и т.д. 
+По туману слов применяя алгоритм написанный на любом удобном языке, можно восстановить сид фразу зная пин-код.
 
 
 #### Описание работы алгоритма.
 
-Пин-код используемый в этом примере - 12345.
+Пин-код используемый в этом примере - 1 2 3 4 5. Обратите внимание, пин-код это не число, это последовательность чисел!
 
 Сид фраза, которую мы собираемся положить в публичном месте после замешивания в туман, состоит из 12 слов.
 Для наглядности в примере работы алгоритма будем использовать цифры вместо настоящих слов.
@@ -36,8 +35,9 @@ print(random_fog())
 
 ##### Исходный ключ
 Образуется склеиванием пин-кода с самим собой до получения длины равной кол-ву слов в сид фразе.
-В этом пример длина пин-кода 5 символов. Поэтому мы _добиваем_ еще 7 символов из начала пин-кода к его концу.
-Таким образом первичный ключ тумана 123451234512, всего 12 символов.
+В этом пример длина пин-кода 5 чисел. Поэтому мы _добиваем_ еще 7 чисел из начала пин-кода к его концу.
+
+Таким образом исходный ключ тумана 1 2 3 4 5 1 2 3 4 5 1 2, всего получается 12 чисел, для фразы из 12 слов.
 
 ##### Первичный ключ
 Для получения первичного ключа надо проделать операцию с каждым элементом исходного ключа:
@@ -57,9 +57,13 @@ print(random_fog())
 ##### Ключ сдвига
 Это последний шаг подготовки, который выполняется так:
 
-для четного индекса XOR ключа берется его значение, складывается со значением из соответствующего индекса первичного ключа и с контрольным XOR числом
+1. Если текущее значение элемента в XOR ключе больше 1000, то от значения в XOR  ключе берутся только первые три цифры и к ним прибавляется текущий индекс цикла (считать от 1)
+   Если значение в XOR ключе меньше 1000, то оно остается как есть.
 
-для нечетного индекса XOR ключа берется его значение, складывается со значением из соответствующего индекса первичного ключа и вычитается контрольное XOR число
+2. Для четного индекса XOR ключа берется его значение полученное на шаге 1 и складывается с контрольным XOR числом.
+   Для нечетного индекса XOR ключа берется его значение полученное на шаге 1 и из него вычитается контрольное XOR число.
+
+3. Если итоговое значение получилось с отрицательным знаком, то меняем знак на положительный.   
 
 
 Все преобразования показаны в таблице. Контрольное число XOR ключа в данном случае равно 11.
@@ -69,7 +73,7 @@ print(random_fog())
 |Пин-код        |   1 	|   2	|   3	|   4	|   5	|   1	|   2	|   3	|   4	|   5	|   1	|   2	|
 |Первичный ключ |   1	|  22	|   9	|   44	|   25	|   61	|   4	|   83	|   16	|   105	|   1	|   122	|
 |XOR         	|   0   |  20 	|  10 	|   40	|   28	|   59	|   3	|   91	|   25	|   99	|   10	|  118 	|
-|Сдвиг  	    |   12	|  31 	|  30 	|   74	|   64	|   109	|   18	|   163	|   52	|   193	|   22	|  229 	|
+|Сдвиг  	    |   11	|  9 	|  21 	|   29	|   39	|   48	|   14	|   80	|   36	|   88	|   21	|  107 	|
 
 Вы также можете провести эксперименты с разными значениями пин-кода в с помощью файла keys_calculator.xlsx 
 
@@ -80,8 +84,8 @@ print(random_fog())
 _Для генерации тумана лучше использовать программу, ибо делать это руками будет достаточно неудобно)_
 После генерации первичного тумана из случайных слов (выше), записываем нашу сид фразу в туман таким образом:
 1. Преобразуем первичный туман в список (_для Pyhon_)
-2. Берем последний символ ключа тумана (_обратный цикл_). Его индекс 12, а значение сдвига 229.
-3. Берем из сид фразы слово стоящее под номером 12 и добавляем его в туман с индексом 229.
+2. Берем последний символ ключа тумана (_обратный цикл_). Его индекс 12, а значение сдвига 107.
+3. Берем из сид фразы слово стоящее под номером 12 и добавляем его в туман с индексом 107.
 4. Туман увеличивается на одно слово, а индексы тумана смещаются на единицу.
 5. Повторяем шаги 3-4 до перебора всей длины ключа.
 6. Таким образом, полученный список увеличится на 12 слов.
@@ -91,39 +95,28 @@ _Для генерации тумана лучше использовать пр
 
 #### Туман, после полного прохода по все фразе
 `
-exchange repair glass visa vintage refuse all enlist flip size puppy number 1 earth 
-empower food foam account believe 7 panel success guitar smile 11 turn close begin 
-pen cake canyon 3 2 fresh quit bleak tattoo sorry weasel melody mistake clay wasp 
-unfair sugar push vague tornado guilt dragon brick choose vapor chest average slight 
-9 maximum film sound venture process room beef solve rain bitter 5 stomach universe 
-eyebrow deputy excuse walk muscle shed 4 burden gather shallow fuel protect ozone 
-sunset organ fun dad giggle latin life empty office uphold lottery pledge aspect 
-capital once retire nose remove poverty depth nominee puppy index absurd found pen 
-into enlist shrug leave slush 6 age sea liar dismiss tank sand dumb indicate then 
-abuse cereal broom buzz conduct tone grass blush cousin bubble parade march fantasy 
-girl nerve heart false tree tobacco tonight local antique rough pizza message lock 
-behind sand mail leaf canal stairs globe phone canyon valid disorder wish try behave 
-law tunnel gather cannon engage hub 8 problem flee walk hundred gain symbol kick 
-drama enroll cousin lobster nose young suspect account visual market great cliff 
-double brisk puzzle hand mass canoe roast spoil useful chair deer vibrant 10 
-spring keen crush width ozone brisk live alley sketch suggest oblige crowd live 
-sight idle must swap attract market essence repair deer wrap nothing govern mango 
-pull truth lazy ball face daring piano album stand goddess tent 12 field panda comic 
-solar club void never crowd shine margin illegal transfer pottery subway glad cage enjoy
+flight enough elbow custom certain pioneer air miracle damp 2 dragon 1 identify casino 
+audit fiction 7 kidney awful drift reward boost twelve 3 all 11 retreat way kite forget 
+glory direct 4 ask mixed spoil wrong away chief muscle twin 9 just 5 melody fault clean 
+problem tip antenna tube lazy used 6 guide survey write dolphin wreck extend mean keen 
+wine rain category high day drink cake bulk verb barrel canyon solar wire grant quote 
+first taste stable grid tribe sugar swing exchange news swear 8 venue direct tank obey 
+draw run debris rebuild claim 10 defy hotel south night flash panda syrup left pet jacket 
+cat cheap assist weapon cup silk wasp oil normal super 12 initial gauge such burden reform 
+adapt hard style fall affair actual chalk draft twist hire wrist icon work notable frost 
+idle chaos zoo logic scatter giggle panel strong screen match grow obtain
 `
 
-#### Восстановление сид фразы из тумана достаточно просто выполнить без компьютера
+#### Восстановление сид фразы из тумана выполняется в обратном порядке
 Теперь цикл уже прямой.
 1. Создаем пустой список для записи слов из тумана.
 2. Преобразуем строку тумана в список (_для Python_)
 3. Создаем все ключи по пин-коду
-4. Берем нулевой индекс ключа. Это 1.
-5. Добавляем слово из туманного списка с индексом 1 + 1 (сдвиг) в список слов. Это первое слово из сид фразы.
-6. Из туманного списка удаляется элемент с индексом 1. Туман слов укорачивается, индексы смещаются.
+4. Берем нулевой индекс ключа. Это 11.
+5. Добавляем слово из туманного списка с индексом 1 в список слов подготовленный на шаге 1. Это первое слово из сид фразы.
+6. Из туманного списка удаляется найденный на шаге 5 элемент. Туман слов укорачивается, индексы смещаются.
 7. Шаги 3-5 повторяются до перебора всей длины ключа.
 
-Как видно, все операции по расчету ключа из пин-кода несложно сделать вручную или например в excel.
-Также можно восстановить фразу с бумажного листка, просто вычеркивая найденные по ключу и сдвигу слова и считая индекс от нуля каждый раз для следующего слова.
 
 #### Несколько слов о безопасности
 
